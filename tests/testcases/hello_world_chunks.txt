@@ -1,0 +1,19 @@
+hello world
+hello world
+!
+<CHUNKLE_TESTCASE_SEPARATOR/>hello world
+!
+<CHUNKLE_TESTCASE_SEPARATOR/>hello world
+hello world
+
+
+<CHUNKLE_TESTCASE_SEPARATOR/>こんにちは
+こんにちは
+！
+<CHUNKLE_TESTCASE_SEPARATOR/>こんにちは
+！
+<CHUNKLE_TESTCASE_SEPARATOR/>こんにちは
+こんにちは
+
+
+<CHUNKLE_TESTCASE_SEPARATOR/>hello world
