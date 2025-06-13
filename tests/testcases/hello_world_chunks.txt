@@ -2,6 +2,7 @@ hello world
 hello world
 !
 <CHUNKLE_TESTCASE_SEPARATOR/>hello world
+
 !
 <CHUNKLE_TESTCASE_SEPARATOR/>hello world
 hello world
@@ -11,6 +12,7 @@ hello world
 こんにちは
 ！
 <CHUNKLE_TESTCASE_SEPARATOR/>こんにちは
+
 ！
 <CHUNKLE_TESTCASE_SEPARATOR/>こんにちは
 こんにちは

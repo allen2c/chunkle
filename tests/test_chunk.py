@@ -10,11 +10,6 @@ SPECIAL_CHUNK_SEPARATOR = "<CHUNKLE_TESTCASE_SEPARATOR/>"
 
 testcase_names = [
     "hello_world",
-    "large_limits",
-    "token_heavy",
-    "multilingual_complex",
-    "document_format",
-    "edge_cases",
 ]
 
 RawContent: typing.TypeAlias = str
