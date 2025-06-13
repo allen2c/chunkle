@@ -1,6 +1,6 @@
 [project]
 authors = [{ name = "Allen Chou", email = "f1470891079@gmail.com" }]
-dependencies = ["tiktoken (>=0.1.0,<1.0.0)"]
+dependencies = ["codepress (>=0.2.2,<0.3.0)", "tiktoken (>=0.1.0,<1.0.0)"]
 description = "Chunk long text with policies."
 license = { text = "MIT" }
 name = "chunkle"
