@@ -68,13 +68,13 @@ def chunk(
     buf: list[str] = []  # current chunk under construction
     line_count = 0
     token_count = 0
-    prev_chunk: str | None = None  # completed chunk waiting to be yielded
+    pending_chunk: str | None = None  # completed chunk waiting to be yielded
 
     def _flush_current() -> None:
-        """Move *buf* to *prev_chunk* and reset counters."""
-        nonlocal buf, line_count, token_count, prev_chunk
+        """Move *buf* to *pending_chunk* and reset counters."""
+        nonlocal buf, line_count, token_count, pending_chunk
         if buf:
-            prev_chunk = "".join(buf)
+            pending_chunk = "".join(buf)
             buf, line_count, token_count = [], 0, 0
 
     i = 0
@@ -83,15 +83,15 @@ def chunk(
         ch = content[i]
 
         # 1️⃣ Handle a completed chunk that is waiting to be emitted
-        if prev_chunk is not None and not buf:
+        if pending_chunk is not None and not buf:
             if not _is_meaningful_char(ch):
-                # absorb punctuation/whitespace into *prev_chunk*
-                prev_chunk += ch
+                # absorb punctuation/whitespace into *pending_chunk*
+                pending_chunk += ch
                 i += 1
                 continue  # keep absorbing
             # first meaningful char → emit the previous chunk
-            yield prev_chunk
-            prev_chunk = None  # reset for next round
+            yield pending_chunk
+            pending_chunk = None  # reset for next round
 
         # 2️⃣ Accumulate current character
         buf.append(ch)
@@ -107,6 +107,6 @@ def chunk(
 
     # 4️⃣ Emit whatever is left
     if buf:
-        yield "".join(buf) if prev_chunk is None else prev_chunk + "".join(buf)
-    elif prev_chunk is not None:
-        yield prev_chunk
+        yield "".join(buf) if pending_chunk is None else pending_chunk + "".join(buf)
+    elif pending_chunk is not None:
+        yield pending_chunk
