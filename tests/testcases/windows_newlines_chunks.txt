@@ -1,0 +1,4 @@
+Windows line 1
+Windows line 2
+<CHUNKLE_TESTCASE_SEPARATOR/>Windows line 3
+Windows line 4

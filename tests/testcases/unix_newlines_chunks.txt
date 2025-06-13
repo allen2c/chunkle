@@ -1,0 +1,4 @@
+Unix line 1
+Unix line 2
+<CHUNKLE_TESTCASE_SEPARATOR/>Unix line 3
+Unix line 4

@@ -1,0 +1,4 @@
+{
+  "lines_per_chunk": 100,
+  "tokens_per_chunk": 1000
+}

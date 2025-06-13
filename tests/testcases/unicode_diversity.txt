@@ -1,0 +1,5 @@
+ASCII text
+Accented: café résumé
+CJK: 你好 こんにちは
+Emoji: 🤖 🌟 🎉
+Mixed: café 你好 🤖!

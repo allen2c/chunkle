@@ -1,0 +1,5 @@
+ASCII text
+Accented: café résumé
+<CHUNKLE_TESTCASE_SEPARATOR/>CJK: 你好 こんにちは
+Emoji: 🤖 🌟 🎉
+<CHUNKLE_TESTCASE_SEPARATOR/>Mixed: café 你好 🤖!

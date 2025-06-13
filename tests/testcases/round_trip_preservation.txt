@@ -1,0 +1,10 @@
+This is a test for round-trip preservation.
+It has multiple lines of content.
+Some lines are short.
+Others are longer to test the token counting functionality properly.
+
+The algorithm should preserve all characters exactly.
+No data should be lost during chunking.
+Each chunk (except the last) must meet both line and token minimums.
+
+Final line to complete the test case.
