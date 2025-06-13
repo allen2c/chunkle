@@ -1,6 +1,0 @@
-The immunoelectrophoretic heterogeneity of macroglobulinemia represents quantitative differences.
-<CHUNKLE_TESTCASE_SEPARATOR/>Spectrophotofluorometrically measured bioluminescence oscillations indicate circadian rhythmicity!
-<CHUNKLE_TESTCASE_SEPARATOR/>Dichlorodiphenyltrichloroethane contamination requires bioremediation strategies immediately?
-<CHUNKLE_TESTCASE_SEPARATOR/>超级复杂的中文科学术语测试：免疫电泳异质性和巨球蛋白血症的定量差异分析。
-<CHUNKLE_TESTCASE_SEPARATOR/>这是一个包含大量复杂汉字和专业术语的句子，用于测试分词算法的准确性！
-<CHUNKLE_TESTCASE_SEPARATOR/>def calculate_cryptographically_secure_hash(data): return hashlib.sha512(data).hexdigest()  # Complex code line

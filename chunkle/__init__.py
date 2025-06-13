@@ -1,8 +1,7 @@
 import typing
+import unicodedata
 
 import tiktoken
-
-YIELD_LATER_CHARS = set("。？！!?;；:：,，、…")  # half- & full-width
 
 
 def chunk(
@@ -13,86 +12,66 @@ def chunk(
     encoding: tiktoken.Encoding | None = None,
 ) -> typing.Generator[str, None, None]:
     """
-    Split *content* into reader-friendly chunks that stay within both line and
-    token budgets, always ending at a “safe” boundary and never starting with
-    whitespace or strong punctuation.
+    Split *content* into reader-friendly chunks that are **at least**
+    `lines_per_chunk` lines **and** **at least** `tokens_per_chunk` tokens.
+    A chunk is flushed the moment *both* limits have been met, so a single
+    chunk can individually exceed either limit.
 
-    The function maintains two parallel limits—`lines_per_chunk` and
-    `tokens_per_chunk`—and emits a chunk as soon as **both** limits are reached
-    or exceeded **and** the current character is a safe break-point:
+    **Chunk-boundary rules**
 
-    * a newline (``\\n``); or
-    * a character in the module-level constant `YIELD_LATER_CHARS`
-    (full-width/half-width sentence-ending punctuation).
+    * *Meaning* vs. *not-meaning* characters
+        A character is “meaningful” if it is **not** whitespace and **not**
+        punctuation (as defined by its Unicode category).  After any flush,
+        contiguous not-meaning characters are absorbed into the **same**
+        chunk so that the **next** chunk begins with the first meaningful
+        character.
 
-    Special rules ensure clean chunk boundaries:
+    * *First chunk caveat*
+        If the input itself starts with whitespace or punctuation, the first
+        chunk necessarily begins with those characters—preserving the source
+        text takes priority over the no-whitespace rule.
 
-    * **Meaning vs. NOT-meaning characters**
-    A meaning character is anything that is *not* whitespace and *not* in
-    `YIELD_LATER_CHARS`.  Chunks never start with a NOT-meaning character.
-    Immediately after a chunk flush, any contiguous NOT-meaning characters
-    are absorbed into the same chunk so that the following chunk begins with
-    the first meaning character.
-
-    * **Blank lines (paragraph breaks)**
-    A blank line (two consecutive newlines, ``\\n\\n``) forces an immediate
-    flush.  The blank line itself is discarded.
-
-    * **Token counting**
-    Tokens are counted incrementally using *tiktoken* with the
-    ``gpt-4o-mini`` encoding, adding ``len(enc.encode(ch))`` for each
-    character appended.  This keeps the algorithm O(n).
+    * *Incremental token counting*
+        Tokens are counted per-character using *tiktoken* and the
+        ``gpt-4o-mini`` encoding, keeping the algorithm O(n).
 
     Args:
-        content: The full text to split.
-        lines_per_chunk: Maximum number of lines allowed in a chunk
-            (inclusive).  A chunk is flushed when the running line count is
-            **≥** this value *and* the token count is **≥** `tokens_per_chunk`.
-        tokens_per_chunk: Maximum number of tokens allowed in a chunk
-            (inclusive).  Tokens are computed with *tiktoken*.
+        content: Full text to split.
+        lines_per_chunk: Minimum line count before a flush **can** happen.
+        tokens_per_chunk: Minimum token count before a flush **can** happen.
 
     Yields:
-        str: Consecutive, non-empty chunks of *content*.  Chunks preserve all
-        original newlines and punctuation, never start with NOT-meaning
-        characters, and respect both limits.
+        Consecutive, non-empty chunks of *content*.
 
-    Examples:
-        >>> sample = "Hello!\\nHello!\\n\\n!\\nHi!\\n"
-        >>> for c in chunk_content(sample, lines_per_chunk=2, tokens_per_chunk=2):
-        ...     print('---\\n' + c + '---')
-        ---
-        Hello!
-        Hello!
-        ---
-        ---
-        Hi!
-        !   # '!' is absorbed into previous chunk
-        ---
+    Examples
+    --------
+    >>> sample = "Hello!\\nWorld!\\n"
+    >>> list(chunk(sample, lines_per_chunk=1, tokens_per_chunk=2))
+    ['Hello!\\n', 'World!\\n']
 
-        >>> text = "你好，世界！\\n你好，世界！\\n\\n？\\nHello.\\n"
-        >>> chunks = list(chunk_content(text, lines_per_chunk=2, tokens_per_chunk=3))
-        >>> len(chunks)
-        2
-        >>> chunks[0].endswith('！')
-        True
-        >>> chunks[1].startswith('Hello')
-        True
-    """  # noqa: E501
+    >>> text = "你好\\n世界\\n"
+    >>> list(chunk(text, lines_per_chunk=1, tokens_per_chunk=2))
+    ['你好\\n', '世界\\n']
+    """
 
     if not content:
         return
 
-    enc = (
-        encoding if encoding is not None else tiktoken.encoding_for_model("gpt-4o-mini")
-    )
+    enc = encoding or tiktoken.encoding_for_model("gpt-4o-mini")
 
-    buf: list[str] = []  # Current chunk being built
+    def _is_meaningful_char(ch: str) -> bool:
+        if ch.isspace():
+            return False
+        # Unicode punctuation categories (Pc, Pd, Pe, Pf, Pi, Po, Ps)
+        return not unicodedata.category(ch).startswith("P")
+
+    buf: list[str] = []  # current chunk under construction
     line_count = 0
     token_count = 0
-    prev_chunk: str | None = None  # Completed chunk awaiting emission
+    prev_chunk: str | None = None  # completed chunk waiting to be yielded
 
     def _flush_current() -> None:
-        """Move current buffer to completed chunk."""
+        """Move *buf* to *prev_chunk* and reset counters."""
         nonlocal buf, line_count, token_count, prev_chunk
         if buf:
             prev_chunk = "".join(buf)
@@ -103,35 +82,30 @@ def chunk(
     while i < n:
         ch = content[i]
 
-        # Handle completed chunk waiting for emission
+        # 1️⃣ Handle a completed chunk that is waiting to be emitted
         if prev_chunk is not None and not buf:
-            if ch.isspace() or ch in YIELD_LATER_CHARS:
+            if not _is_meaningful_char(ch):
+                # absorb punctuation/whitespace into *prev_chunk*
                 prev_chunk += ch
                 i += 1
-                continue
-            # First meaningful character - emit completed chunk
+                continue  # keep absorbing
+            # first meaningful char → emit the previous chunk
             yield prev_chunk
-            prev_chunk = None
+            prev_chunk = None  # reset for next round
 
-        # Handle paragraph breaks (blank lines)
-        if ch == "\n" and i > 0 and content[i - 1] == "\n":
-            _flush_current()
-            i += 1
-            continue
-
-        # Accumulate characters and counts
+        # 2️⃣ Accumulate current character
         buf.append(ch)
         if ch == "\n":
             line_count += 1
         token_count += len(enc.encode(ch))
 
-        # Check if ready to break at safe boundary
+        # 3️⃣ Flush if **both** limits are now satisfied
         if line_count >= lines_per_chunk and token_count >= tokens_per_chunk:
-            if ch == "\n" or ch in YIELD_LATER_CHARS:
-                _flush_current()
+            _flush_current()
+
         i += 1
 
-    # Emit remaining content
+    # 4️⃣ Emit whatever is left
     if buf:
         yield "".join(buf) if prev_chunk is None else prev_chunk + "".join(buf)
     elif prev_chunk is not None:
