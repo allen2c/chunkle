@@ -1,0 +1,29 @@
+[project]
+authors = [{ name = "Allen Chou", email = "f1470891079@gmail.com" }]
+dependencies = ["tiktoken (>=0.1.0,<1.0.0)"]
+description = "Chunk long text with policies."
+license = { text = "MIT" }
+name = "chunkle"
+readme = "README.md"
+requires-python = ">=3.11,<4"
+version = "0.1.0"
+
+[tool.poetry.requires-plugins]
+poetry-plugin-export = ">=1.8"
+
+[tool.poetry.group.dev.dependencies]
+black = "*"
+codepress = "*"
+isort = "*"
+pytest = "*"
+
+[tool.isort]
+profile = "black"
+
+[tool.flake8]
+ignore = ["E203", "E704", "W503"]
+max-line-length = 88
+
+[build-system]
+build-backend = "poetry.core.masonry.api"
+requires = ["poetry-core>=2.0.0,<3.0.0"]
