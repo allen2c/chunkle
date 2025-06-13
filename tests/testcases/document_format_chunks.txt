@@ -1,0 +1,34 @@
+# Markdown Document Test
+<CHUNKLE_TESTCASE_SEPARATOR/>## Introduction
+This document tests chunking with markdown formatting.
+It includes **bold text**, *italic text*, and `inline code`.
+<CHUNKLE_TESTCASE_SEPARATOR/>### Code Block Example
+```python
+def hello_world():
+    print("Hello, World!")
+    return True
+```
+<CHUNKLE_TESTCASE_SEPARATOR/>### List Examples
+- Bullet point 1
+- Bullet point 2
+  - Nested item 2.1
+  - Nested item 2.2
+- Bullet point 3
+<CHUNKLE_TESTCASE_SEPARATOR/>1. Numbered item first
+2. Numbered item second
+3. Numbered item third
+<CHUNKLE_TESTCASE_SEPARATOR/>### Table Example
+| Column 1 | Column 2 | Column 3 |
+|----------|----------|----------|
+| Data 1   | Data 2   | Data 3   |
+| Data 4   | Data 5   | Data 6   |
+<CHUNKLE_TESTCASE_SEPARATOR/>### Quoted Text
+> This is a blockquote that might span
+> multiple lines and should be kept together
+> when possible for readability.
+<CHUNKLE_TESTCASE_SEPARATOR/>### Links and References
+Check out [this link](https://example.com) and this footnote[^1].
+<CHUNKLE_TESTCASE_SEPARATOR/>[^1]: This is a footnote reference.
+<CHUNKLE_TESTCASE_SEPARATOR/>---
+<CHUNKLE_TESTCASE_SEPARATOR/>## Conclusion
+This concludes our markdown test!

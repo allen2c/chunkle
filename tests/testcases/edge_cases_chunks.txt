@@ -1,0 +1,23 @@
+This is an extremely long line that contains many words and should definitely exceed any reasonable token limit in a single line and will test how the chunker handles very long lines without any natural break points except at the very end of this tremendously long sentence!
+<CHUNKLE_TESTCASE_SEPARATOR/>!
+?
+;
+:
+,
+、
+…
+<CHUNKLE_TESTCASE_SEPARATOR/>Single char lines above!
+<CHUNKLE_TESTCASE_SEPARATOR/>Multiple blank lines above and below!
+<CHUNKLE_TESTCASE_SEPARATOR/>Now a line with just punctuation: !?;:,、…
+<CHUNKLE_TESTCASE_SEPARATOR/>A line ending with half-width comma,
+A line ending with full-width comma，
+A line ending with ideographic comma、
+<CHUNKLE_TESTCASE_SEPARATOR/>A line ending with ellipsis…
+<CHUNKLE_TESTCASE_SEPARATOR/>　　Lines starting with full-width spaces.
+  Lines starting with half-width spaces.
+		Lines starting with tabs.
+<CHUNKLE_TESTCASE_SEPARATOR/>Mixed indent and punctuation:
+  - Item with half-width punctuation!
+<CHUNKLE_TESTCASE_SEPARATOR/>  ー Item with full-width punctuation！
+<CHUNKLE_TESTCASE_SEPARATOR/>  • Item with bullet point。
+<CHUNKLE_TESTCASE_SEPARATOR/>Edge case: line exactly at boundary.
