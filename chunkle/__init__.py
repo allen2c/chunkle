@@ -3,6 +3,8 @@ import unicodedata
 
 import tiktoken
 
+__version__ = "0.2.0"
+
 
 def chunk(
     content: str,
