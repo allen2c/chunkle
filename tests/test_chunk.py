@@ -20,6 +20,7 @@ testcase_names = [
     "unix_newlines",
     "windows_newlines",
     "no_final_newline",
+    "quote_word_boundary",
 ]
 
 RawContent: typing.TypeAlias = str
