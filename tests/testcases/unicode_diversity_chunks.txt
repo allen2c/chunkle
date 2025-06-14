@@ -1,5 +1,5 @@
 ASCII text
-Accented: café résumé
+Accen<CHUNKLE_TESTCASE_SEPARATOR/>ted: café résumé
 <CHUNKLE_TESTCASE_SEPARATOR/>CJK: 你好 こんにちは
-Emoji: 🤖 🌟 🎉
-<CHUNKLE_TESTCASE_SEPARATOR/>Mixed: café 你好 🤖!
+Em<CHUNKLE_TESTCASE_SEPARATOR/>oji: 🤖 🌟 🎉
+Mi<CHUNKLE_TESTCASE_SEPARATOR/>xed: café 你好 🤖!

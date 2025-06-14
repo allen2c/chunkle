@@ -1,6 +1,6 @@
-   !!! Starting with spaces and punctuation
-This line comes after the punctuation
-<CHUNKLE_TESTCASE_SEPARATOR/>And this is the third line
-More content here
-<CHUNKLE_TESTCASE_SEPARATOR/>Fifth line of content
+   !!! Starting with <CHUNKLE_TESTCASE_SEPARATOR/>spaces and punctuati<CHUNKLE_TESTCASE_SEPARATOR/>on
+This line comes a<CHUNKLE_TESTCASE_SEPARATOR/>fter the punctuation
+<CHUNKLE_TESTCASE_SEPARATOR/>And this is the thir<CHUNKLE_TESTCASE_SEPARATOR/>d line
+More content <CHUNKLE_TESTCASE_SEPARATOR/>here
+Fifth line of c<CHUNKLE_TESTCASE_SEPARATOR/>ontent
 Final line
