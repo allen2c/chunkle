@@ -1,6 +1,6 @@
 # chunkle
 
-Split big text into reader‑friendly pieces while respecting **line** and **token** budgets.
+**Smart text chunking** that respects both line and token limits while preserving semantic boundaries.
 
 ## Install
 
@@ -8,23 +8,65 @@ Split big text into reader‑friendly pieces while respecting **line** and **tok
 pip install chunkle
 ```
 
-Compatible with Python ≥ 3.11.
-
-## Quick start
+## Quick Start
 
 ```python
 from chunkle import chunk
 
-for part in chunk(big_text, lines_per_chunk=20, tokens_per_chunk=500):
-    ...  # stream, save, or send
+# Basic usage
+for piece in chunk(text, lines_per_chunk=20, tokens_per_chunk=500):
+    print(piece)
+
+# Custom limits
+chunks = list(chunk(text, lines_per_chunk=5, tokens_per_chunk=100))
 ```
 
-The generator yields a chunk the moment **both** budgets are met.
+## How It Works
 
-### **Defaults**
+```mermaid
+flowchart TD
+    A["📝 Start processing text"] --> B["📊 Accumulate chars<br/>Count lines & tokens"]
+    B --> C{"✅ Both limits met?<br/>(lines ≥ min AND tokens ≥ min)"}
+    C -->|No| D{"🚨 Exceeded 2x limits?"}
+    C -->|Yes| E{"🎯 Good break point?<br/>(newline > whitespace)"}
 
-* `lines_per_chunk = 20`
-* `tokens_per_chunk = 500`
+    D -->|No| B
+    D -->|Yes| F["💥 Force flush<br/>(semantic boundary ignored)"]
+
+    E -->|No| D
+    E -->|Yes| G["✂️ Flush chunk<br/>(clean semantic boundary)"]
+
+    F --> H["🧽 Absorb whitespace/punctuation<br/>into previous chunk"]
+    G --> H
+    H --> I{"📄 More text?"}
+    I -->|Yes| B
+    I -->|No| J["🏁 Done"]
+```
+
+### Rules
+
+1. **Dual Requirements**: Chunks must meet BOTH line AND token minimums
+2. **Smart Boundaries**: Prefers newlines (best) > whitespace (good) > force split
+3. **Force Split**: Splits at 2x limits even if it breaks semantics
+4. **Clean Starts**: New chunks begin with meaningful characters
+
+## Examples
+
+**English Text:**
+
+```python
+text = "Hello world!\nThis is a test.\nAnother line here."
+chunks = list(chunk(text, lines_per_chunk=1, tokens_per_chunk=8))
+# Result: ['Hello world!\n', 'This is a test.\n', 'Another line here.']
+```
+
+**Chinese Text (force split):**
+
+```python
+text = "這是一個很長的句子，沒有空格，會觸發強制切分機制。"
+chunks = list(chunk(text, lines_per_chunk=1, tokens_per_chunk=10))
+# May split mid-sentence when no whitespace available
+```
 
 ## API
 
@@ -35,15 +77,15 @@ def chunk(
     lines_per_chunk: int = 20,
     tokens_per_chunk: int = 500,
     encoding: tiktoken.Encoding | None = None,
-) -> typing.Generator[str, None, None]:
-    ...
+) -> Generator[str, None, None]:
 ```
 
-## Comming Next
+**Parameters:**
 
-* **Benchmark** batched vs. per‑char tokenization on a 10 MB multilingual file.
-* Ship **0.1.1** with CRLF handling and an expanded README.
-* Add a **GitHub Action** matrix (Python 3.11 & 3.12) to prevent regressions.
+- `content`: Text to split
+- `lines_per_chunk`: Minimum lines per chunk (default: 20)
+- `tokens_per_chunk`: Minimum tokens per chunk (default: 500)
+- `encoding`: Custom tiktoken encoding (default: gpt-4o-mini)
 
 ## License
 

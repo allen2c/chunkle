@@ -14,46 +14,26 @@ def chunk(
     encoding: tiktoken.Encoding | None = None,
 ) -> typing.Generator[str, None, None]:
     """
-    Split *content* into reader-friendly chunks that are **at least**
-    `lines_per_chunk` lines **and** **at least** `tokens_per_chunk` tokens.
-    A chunk is flushed the moment *both* limits have been met, so a single
-    chunk can individually exceed either limit.
+    Split text into chunks with minimum line and token requirements.
 
-    **Chunk-boundary rules**
+        **Algorithm:**
+    1. Accumulate text until BOTH limits are met
+    2. Flush at next break point: newline (best) > whitespace (good)
+    3. If no break point found, force flush at 2x limits
+    4. New chunks start with meaningful characters (non-whitespace/punctuation)
 
-    * *Meaning* vs. *not-meaning* characters
-        A character is "meaningful" if it is **not** whitespace and **not**
-        punctuation (as defined by its Unicode category).  After any flush,
-        contiguous not-meaning characters are absorbed into the **same**
-        chunk so that the **next** chunk begins with the first meaningful
-        character.
+    **Args:**
+        content: Text to split
+        lines_per_chunk: Minimum lines per chunk (default: 20)
+        tokens_per_chunk: Minimum tokens per chunk (default: 500)
+        encoding: Custom tiktoken encoding (default: gpt-4o-mini)
 
-    * *First chunk caveat*
-        If the input itself starts with whitespace or punctuation, the first
-        chunk necessarily begins with those characters—preserving the source
-        text takes priority over the no-whitespace rule.
+    **Yields:**
+        Text chunks preserving semantic boundaries when possible
 
-    * *Incremental token counting*
-        Tokens are counted per-character using *tiktoken* and the
-        ``gpt-4o-mini`` encoding, keeping the algorithm O(n).
-
-    Args:
-        content: Full text to split.
-        lines_per_chunk: Minimum line count before a flush **can** happen.
-        tokens_per_chunk: Minimum token count before a flush **can** happen.
-
-    Yields:
-        Consecutive, non-empty chunks of *content*.
-
-    Examples
-    --------
-    >>> sample = "Hello!\\nWorld!\\n"
-    >>> list(chunk(sample, lines_per_chunk=1, tokens_per_chunk=2))
-    ['Hello!\\n', 'World!\\n']
-
-    >>> text = "你好\\n世界\\n"
-    >>> list(chunk(text, lines_per_chunk=1, tokens_per_chunk=2))
-    ['你好\\n', '世界\\n']
+    **Examples:**
+        >>> list(chunk("Hello!\\nWorld!\\n", lines_per_chunk=1, tokens_per_chunk=2))
+        ['Hello!\\n', 'World!\\n']
     """
 
     if not content:
