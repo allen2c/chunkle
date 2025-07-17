@@ -2,6 +2,9 @@
 
 **Smart text chunking** that respects both line and token limits while preserving semantic boundaries.
 
+GitHub: [https://github.com/allen2c/chunkle](https://github.com/allen2c/chunkle)
+Pypi: [https://pypi.org/project/chunkle/](https://pypi.org/project/chunkle/)
+
 ## Install
 
 ```bash

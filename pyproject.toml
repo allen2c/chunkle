@@ -1,12 +1,12 @@
 [project]
-authors = [{ name = "Allen Chou", email = "f1470891079@gmail.com" }]
+authors = [{ name = "allen2c", email = "f1470891079@gmail.com" }]
 dependencies = ["codepress (>=0.2.2,<0.3.0)", "tiktoken (>=0.1.0,<1.0.0)"]
 description = "Chunk long text with policies."
 license = { text = "MIT" }
 name = "chunkle"
 readme = "README.md"
 requires-python = ">=3.11,<4"
-version = "0.2.0"
+version = "0.2.1"
 
 [tool.poetry.requires-plugins]
 poetry-plugin-export = ">=1.8"
