@@ -1,7 +1,6 @@
 import json
 import pathlib
 import typing
-import unicodedata
 
 import pytest
 
@@ -25,14 +24,6 @@ testcase_names = [
 RawContent: typing.TypeAlias = str
 ChunkParams: typing.TypeAlias = typing.Dict[str, typing.Any]
 ChunkContentWithSeparator: typing.TypeAlias = str
-
-
-def _is_meaningful_char(ch: str) -> bool:
-    """Helper function to check if a character is meaningful (same as chunk function)."""  # noqa: E501
-    if ch.isspace():
-        return False
-    # Unicode punctuation categories (Pc, Pd, Pe, Pf, Pi, Po, Ps)
-    return not unicodedata.category(ch).startswith("P")
 
 
 def assert_chunk_invariants(raw: str, params: ChunkParams) -> None:

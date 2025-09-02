@@ -1,9 +1,12 @@
+# chunkle/__init__.py
+import logging
 import typing
-import unicodedata
 
 import tiktoken
 
-__version__ = "0.2.1"
+__version__ = "0.3.0"
+
+logger = logging.getLogger(__name__)
 
 
 def chunk(
@@ -11,128 +14,85 @@ def chunk(
     *,
     lines_per_chunk: int = 20,
     tokens_per_chunk: int = 500,
+    force_chunk_over_threshold_times: int = 2,
     encoding: tiktoken.Encoding | None = None,
 ) -> typing.Generator[str, None, None]:
-    """
-    Split text into chunks with minimum line and token requirements.
-
-        **Algorithm:**
-    1. Accumulate text until BOTH limits are met
-    2. Flush at next break point: newline (best) > whitespace (good)
-    3. If no break point found, force flush at 2x limits
-    4. New chunks start with meaningful characters (non-whitespace/punctuation)
-
-    **Args:**
-        content: Text to split
-        lines_per_chunk: Minimum lines per chunk (default: 20)
-        tokens_per_chunk: Minimum tokens per chunk (default: 500)
-        encoding: Custom tiktoken encoding (default: gpt-4o-mini)
-
-    **Yields:**
-        Text chunks preserving semantic boundaries when possible
-
-    **Examples:**
-        >>> list(chunk("Hello!\\nWorld!\\n", lines_per_chunk=1, tokens_per_chunk=2))
-        ['Hello!\\n', 'World!\\n']
+    """Token-based chunking with dual thresholds and clean starts.
+    Emit after both limits at next non-breaking token; trailing breaks merge.
+    Force emit beyond multiplier only at whitespace token boundaries.
     """
 
     if not content:
         return
+    if not (lines_per_chunk >= 1):
+        raise ValueError("lines_per_chunk must be greater than or equal to 1")
+    if not (tokens_per_chunk >= 1):
+        raise ValueError("tokens_per_chunk must be greater than or equal to 1")
+    if not (force_chunk_over_threshold_times >= 1):
+        raise ValueError(
+            "force_chunk_over_threshold_times must be greater than or equal to 1"
+        )
 
     enc = encoding or tiktoken.encoding_for_model("gpt-4o-mini")
+    # breaking_token_ids = set(get_breaking_token_ids(enc))
 
-    def _is_meaningful_char(ch: str) -> bool:
-        if ch.isspace():
-            return False
+    buffer: typing.List[int] = []
+    should_emit: bool = False
+    current_lines: int = 1
 
-        # Get Unicode category
-        cat = unicodedata.category(ch)
+    token_ids: typing.List[int] = enc.encode(content)
+    token_texts: typing.List[str] = enc.decode_batch(
+        [[token_id] for token_id in token_ids]
+    )
+    for token_id, token_text in zip(token_ids, token_texts):
+        # A token is meaningful if it is not purely whitespace
+        token_meaningful: bool = bool(token_text.strip())
+        # A token is a breaking token if its decoded form starts/ends with a newline
+        token_has_newline: bool = token_text.startswith("\n") or token_text.endswith(
+            "\n"
+        )
 
-        # Important punctuation marks should be considered meaningful
-        # to avoid breaking semantic units like quotes, parentheses, etc.
-        if cat.startswith("P"):
-            # Punctuation categories that should be treated as meaningful:
-            # Ps (Open Punctuation) - (, [, {, 「, etc.
-            # Pe (Close Punctuation) - ), ], }, 」, etc.
-            # Pi (Initial Punctuation) - opening quotes
-            # Pf (Final Punctuation) - closing quotes
-            # Po (Other Punctuation) - sentence-ending punctuation like ., !, ?
-            important_punct_cats = {"Ps", "Pe", "Pi", "Pf", "Po"}
-            if cat in important_punct_cats:
-                return True
-            # Other punctuation categories (Pc, Pd) are less meaningful
-            return False
+        # Emit when encounter meaningful characters but `should_emit` is True
+        if token_meaningful and should_emit:
+            yield enc.decode(buffer)
+            buffer = []
+            should_emit = False
+            current_lines = 1
 
-        # All other non-space characters are meaningful
-        return True
+        buffer.append(token_id)
 
-    def _is_good_break_point(content: str, pos: int) -> bool:
-        """Check if this position is a good point to break between chunks."""
-        if pos >= len(content):
-            return True
+        if token_has_newline:
+            current_lines += 1
 
-        ch = content[pos]
+        # Only after both conditions are met, we can check the condition of should emit
+        if current_lines >= lines_per_chunk and len(buffer) >= tokens_per_chunk:
 
-        # Best break points: newlines (paragraph boundaries)
-        if ch == "\n":
-            return True
+            # Should emit when encounter breaking token ids
+            if token_has_newline:
+                logger.debug(
+                    f"Should emit chunk with lines: {current_lines}, "
+                    + f"tokens: {len(buffer)}"
+                )
+                should_emit = True
 
-        # Other whitespace is good too, but prefer newlines
-        if ch.isspace():
-            return True
+            # Validate force emit condition: if the number of newlines is greater than the threshold times of the line per chunk  # noqa: E501
+            elif current_lines >= lines_per_chunk * force_chunk_over_threshold_times:
+                # Decode only when we need to inspect whitespace boundaries
+                if (token_text[:1].isspace()) or (token_text[-1:].isspace()):
+                    logger.debug(f"Force emit chunk due to lines: {current_lines}")
+                    should_emit = True
 
-        return False
+            # Validate force emit condition: if the number of tokens is greater than the threshold times of the token per chunk  # noqa: E501
+            elif len(buffer) >= tokens_per_chunk * force_chunk_over_threshold_times:
+                # Decode only when we need to inspect whitespace boundaries
+                if (token_text[:1].isspace()) or (token_text[-1:].isspace()):
+                    logger.debug(f"Force emit chunk due to tokens: {len(buffer)}")
+                    should_emit = True
 
-    buf: list[str] = []  # current chunk under construction
-    line_count = 0
-    token_count = 0
-    pending_chunk: str | None = None  # completed chunk waiting to be yielded
-    ready_to_flush = False  # flag to indicate we can flush at next good break point
+            else:
+                pass
 
-    def _flush_current() -> None:
-        """Move *buf* to *pending_chunk* and reset counters."""
-        nonlocal buf, line_count, token_count, pending_chunk, ready_to_flush
-        if buf:
-            pending_chunk = "".join(buf)
-            buf, line_count, token_count, ready_to_flush = [], 0, 0, False
+    if buffer:
+        yield enc.decode(buffer)
 
-    i = 0
-    n = len(content)
-    while i < n:
-        ch = content[i]
-
-        # 1️⃣ Handle a completed chunk that is waiting to be emitted
-        if pending_chunk is not None and not buf:
-            if not _is_meaningful_char(ch):
-                # absorb punctuation/whitespace into *pending_chunk*
-                pending_chunk += ch
-                i += 1
-                continue  # keep absorbing
-            # first meaningful char → emit the previous chunk
-            yield pending_chunk
-            pending_chunk = None  # reset for next round
-
-        # 2️⃣ Accumulate current character
-        buf.append(ch)
-        if ch == "\n":
-            line_count += 1
-        token_count += len(enc.encode(ch))
-
-        # 3️⃣ Check if both limits are satisfied
-        if line_count >= lines_per_chunk and token_count >= tokens_per_chunk:
-            ready_to_flush = True
-
-        # 4️⃣ Flush if ready and at a good break point
-        if ready_to_flush and _is_good_break_point(content, i + 1):
-            _flush_current()
-        # Or if we've significantly exceeded limits, flush regardless
-        elif line_count >= lines_per_chunk * 2 or token_count >= tokens_per_chunk * 2:
-            _flush_current()
-
-        i += 1
-
-    # 5️⃣ Emit whatever is left
-    if buf:
-        yield "".join(buf) if pending_chunk is None else pending_chunk + "".join(buf)
-    elif pending_chunk is not None:
-        yield pending_chunk
+    return None

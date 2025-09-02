@@ -1,10 +1,10 @@
-This is a test for round-trip <CHUNKLE_TESTCASE_SEPARATOR/>preservation.
-It has multiple <CHUNKLE_TESTCASE_SEPARATOR/>lines of content.
-Some lines a<CHUNKLE_TESTCASE_SEPARATOR/>re short.
-Others are longer to <CHUNKLE_TESTCASE_SEPARATOR/>test the token counting functi<CHUNKLE_TESTCASE_SEPARATOR/>onality properly.
+This is a test for round-trip preservation.
+It has multiple lines of content.
+<CHUNKLE_TESTCASE_SEPARATOR/>Some lines are short.
+Others are longer to test the token counting functionality properly.
 
-The algorit<CHUNKLE_TESTCASE_SEPARATOR/>hm should preserve all charact<CHUNKLE_TESTCASE_SEPARATOR/>ers exactly.
-No data should be <CHUNKLE_TESTCASE_SEPARATOR/>lost during chunking.
-Each chu<CHUNKLE_TESTCASE_SEPARATOR/>nk (except the last) must meet <CHUNKLE_TESTCASE_SEPARATOR/>both line and token minimums.
+<CHUNKLE_TESTCASE_SEPARATOR/>The algorithm should preserve all characters exactly.
+No data should be lost during chunking.
+<CHUNKLE_TESTCASE_SEPARATOR/>Each chunk (except the last) must meet both line and token minimums.
 
-<CHUNKLE_TESTCASE_SEPARATOR/>Final line to complete the tes<CHUNKLE_TESTCASE_SEPARATOR/>t case.
+Final line to complete the test case.
