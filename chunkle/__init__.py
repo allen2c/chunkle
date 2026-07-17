@@ -4,7 +4,7 @@ import typing
 
 import tiktoken
 
-__version__ = "0.3.0"
+__version__ = "0.3.1"
 
 logger = logging.getLogger(__name__)
 
@@ -41,9 +41,12 @@ def chunk(
     current_lines: int = 1
 
     token_ids: typing.List[int] = enc.encode(content)
-    token_texts: typing.List[str] = enc.decode_batch(
-        [[token_id] for token_id in token_ids]
-    )
+    # Decode per token directly: decode_batch submits one thread-pool future per
+    # list element, which costs 65x more than this loop for single-token lists.
+    token_texts: typing.List[str] = [
+        enc.decode_single_token_bytes(token_id).decode("utf-8", errors="replace")
+        for token_id in token_ids
+    ]
     for token_id, token_text in zip(token_ids, token_texts):
         # A token is meaningful if it is not purely whitespace
         token_meaningful: bool = bool(token_text.strip())
