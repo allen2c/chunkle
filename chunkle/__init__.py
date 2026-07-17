@@ -43,10 +43,12 @@ def chunk(
     token_ids: typing.List[int] = enc.encode(content)
     # Decode per token directly: decode_batch submits one thread-pool future per
     # list element, which costs 65x more than this loop for single-token lists.
-    token_texts: typing.List[str] = [
+    # Lazily, so that a caller reading only the first chunks never pays to decode
+    # the rest of the content.
+    token_texts: typing.Iterator[str] = (
         enc.decode_single_token_bytes(token_id).decode("utf-8", errors="replace")
         for token_id in token_ids
-    ]
+    )
     for token_id, token_text in zip(token_ids, token_texts):
         # A token is meaningful if it is not purely whitespace
         token_meaningful: bool = bool(token_text.strip())

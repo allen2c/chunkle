@@ -71,3 +71,26 @@ def test_chunk_does_not_use_decode_batch(monkeypatch: pytest.MonkeyPatch):
     chunks = list(chunk(text, encoding=ENC, lines_per_chunk=5, tokens_per_chunk=20))
 
     assert "".join(chunks) == text
+
+
+def test_chunk_decodes_lazily(monkeypatch: pytest.MonkeyPatch):
+    """Reading one chunk must not decode every token of the content."""
+    decoded_count = 0
+    decode_single_token_bytes = ENC.decode_single_token_bytes
+
+    def counting(self: tiktoken.Encoding, token_id: int) -> bytes:
+        nonlocal decoded_count
+        decoded_count += 1
+        return decode_single_token_bytes(token_id)
+
+    monkeypatch.setattr(tiktoken.Encoding, "decode_single_token_bytes", counting)
+
+    text = "台灣的氣候屬於亞熱帶與熱帶交界。\n" * 2_000
+    total_tokens = len(ENC.encode(text))
+
+    next(chunk(text, encoding=ENC, lines_per_chunk=2, tokens_per_chunk=10))
+
+    assert decoded_count < total_tokens / 10, (
+        f"decoded {decoded_count} of {total_tokens} tokens for a single chunk; "
+        "token_texts is being materialized eagerly"
+    )
