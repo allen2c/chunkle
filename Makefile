@@ -1,16 +1,10 @@
 # Development
-format-all:
-	isort .
-	black .
+fmt:
+	isort chunkle tests
+	black chunkle tests
 
-update-all:
+update:
 	poetry update
-	poetry export \
-		-f requirements.txt \
-		--output requirements.txt \
-		--without-hashes \
-		--all-extras \
-		--all-groups
 
 test:
 	pytest

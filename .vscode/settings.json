@@ -42,10 +42,9 @@
       "list_items": false
     }
   },
-  "vscode-yaml-sort.quotingType": "\"",
   "evenBetterToml.formatter.reorderKeys": true,
   "evenBetterToml.formatter.reorderArrays": true,
-  "flake8.args": ["--ignore=E203,E704,W503", "--max-line-length=88"],
+  "flake8.args": ["--ignore=E203,E704,W503", "--max-line-length=120"],
   "yaml.schemas": {
     "https://squidfunk.github.io/mkdocs-material/schema.json": "mkdocs.yml"
   },
